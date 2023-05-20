@@ -37,6 +37,9 @@ flags.DEFINE_list(
 )
 flags.DEFINE_list("protein_lists", None, "protein list files")
 
+flags.DEFINE_boolean("use_unifold",False,"use unifold or not")
+flags.DEFINE_string("unifold_param","","path to unifold parameters")
+
 delattr(flags.FLAGS, "data_dir")
 flags.DEFINE_string("data_dir", None, "Path to params directory")
 
@@ -267,7 +270,7 @@ def create_custom_jobs(custom_input_file, monomer_objects_dir, job_index=None, p
 
 
 
-def predict_individual_jobs(multimer_object, output_path, model_runners, random_seed):
+def predict_individual_jobs(multimer_object, output_path, model_runners, random_seed,use_unifold=False):
     output_path = os.path.join(output_path, multimer_object.description)
     Path(output_path).mkdir(parents=True, exist_ok=True)
     logging.info(f"now running prediction on {multimer_object.description}")
@@ -276,23 +279,26 @@ def predict_individual_jobs(multimer_object, output_path, model_runners, random_
     if not isinstance(multimer_object, MultimericObject):
         multimer_object.input_seqs = [multimer_object.sequence]
 
+    if not use_unifold:
+        predict(
+            model_runners,
+            output_path,
+            multimer_object.feature_dict,
+            random_seed,
+            FLAGS.benchmark,
+            fasta_name=multimer_object.description,
+            models_to_relax=FLAGS.models_to_relax,
+            seqs=multimer_object.input_seqs,
+        )
+        create_and_save_pae_plots(multimer_object, output_path)
+    else:
+        from unifold.inference import config_args,unifold_config_model,unifold_predict
+        general_args = config_args(FLAGS.unifold_param,target_name=multimer_object.description,output_dir=output_path)
+        model_runner = unifold_config_model(general_args)
+        logging.info(f"finished configuring the Unifold AlphlaFold model")
+        unifold_predict(model_runner,general_args,multimer_object.feature_dict)
 
-    predict(
-        model_runners,
-        output_path,
-        multimer_object.feature_dict,
-        random_seed,
-        FLAGS.benchmark,
-        fasta_name=multimer_object.description,
-        models_to_relax=FLAGS.models_to_relax,
-        seqs=multimer_object.input_seqs,
-    )
-    create_and_save_pae_plots(multimer_object, output_path)
-
-
-
-
-def predict_multimers(multimers):
+def predict_multimers(multimers,use_unifold=False):
     """
     Final function to predict multimers
 
@@ -315,6 +321,7 @@ def predict_multimers(multimers):
                 FLAGS.output_path,
                 model_runners=model_runners,
                 random_seed=random_seed,
+                use_unifold=use_unifold
             )
         else:
             model_runners, random_seed = create_model_runners_and_random_seed(
@@ -329,7 +336,7 @@ def predict_multimers(multimers):
                 object,
                 FLAGS.output_path,
                 model_runners=model_runners,
-                random_seed=random_seed,
+                random_seed=random_seed,use_unifold=use_unifold
             )
 
 
@@ -371,7 +378,7 @@ def main(argv):
         )
 
 
-    predict_multimers(multimers)
+    predict_multimers(multimers,use_unifold=FLAGS.use_unifold)
 
 
 
