@@ -12,3 +12,4 @@
 [submodule "unifold"]
 	path = unifold
 	url = git@github.com:henrywotton/Uni-Fold.git
+	branch = af2v3
