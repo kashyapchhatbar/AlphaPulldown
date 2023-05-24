@@ -39,8 +39,16 @@ Check if you have downloaded necessary parameters and databases (e.g. BFD, MGnif
     uniref90/                              # ~ 58 GB (download: 29.7 GB)
         uniref90.fasta
  ```
+## (For developers) Installation locally
+```bash
+git clone --recurse-submodules git@github.com:KosinskiLab/AlphaPulldown.git
+cd AlphaPulldown 
+git submodule init
+git submodule update 
+pip install .
+```
 
-## Installation 
+## (For users) pip installation 
 
 **Firstly**, install [Anaconda](https://www.anaconda.com/) and create AlphaPulldown environment, gathering necessary dependencies 
 ```bash
@@ -50,7 +58,7 @@ conda create -n AlphaPulldown -c omnia -c bioconda -c conda-forge python==3.8 op
 **Secondly**, activate the AlphaPulldown environment and install AlphaPulldown
 ```bash
 source activate AlphaPulldown
-python3 -m pip install alphapulldown==0.30.5
+python3 -m pip install alphapulldown==0.30.6
 pip install -q "jax[cuda]==0.3.25" -f https://storage.googleapis.com/jax-releases/jax_cuda_releases.html
 ```
 
