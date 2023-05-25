@@ -54,7 +54,7 @@ flags.DEFINE_boolean(
     "no_pair_msa", False, "do not pair the MSAs when constructing multimer objects"
 )
 flags.DEFINE_enum("unifold_model_name","multimer_af2",
-                  ["multimer_af2","multimer_ft","multimer","multimer_af2_v3","multimer_af2_model45_v3"])
+                  ["multimer_af2","multimer_ft","multimer","multimer_af2_v3","multimer_af2_model45_v3"],"choose unifold model structure")
 flags.mark_flag_as_required("output_path")
 
 delattr(flags.FLAGS, "models_to_relax")
