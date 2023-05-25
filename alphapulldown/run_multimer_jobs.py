@@ -272,7 +272,8 @@ def create_custom_jobs(custom_input_file, monomer_objects_dir, job_index=None, p
 
 
 
-def predict_individual_jobs(multimer_object, output_path, model_runners, random_seed,use_unifold=False):
+def predict_individual_jobs(multimer_object, output_path, model_runners, random_seed,
+                            use_unifold=False,use_openfold=False):
     output_path = os.path.join(output_path, multimer_object.description)
     Path(output_path).mkdir(parents=True, exist_ok=True)
     logging.info(f"now running prediction on {multimer_object.description}")
@@ -281,7 +282,7 @@ def predict_individual_jobs(multimer_object, output_path, model_runners, random_
     if not isinstance(multimer_object, MultimericObject):
         multimer_object.input_seqs = [multimer_object.sequence]
 
-    if not use_unifold:
+    if not use_unifold and not use_openfold:
         predict(
             model_runners,
             output_path,
@@ -293,7 +294,7 @@ def predict_individual_jobs(multimer_object, output_path, model_runners, random_
             seqs=multimer_object.input_seqs,
         )
         create_and_save_pae_plots(multimer_object, output_path)
-    else:
+    elif use_unifold:
         from unifold.inference import config_args,unifold_config_model,unifold_predict
         from unifold.dataset import process_ap
         from unifold.config import model_config
@@ -308,6 +309,9 @@ def predict_individual_jobs(multimer_object, output_path, model_runners, random_
                                        data_idx=None,is_distillation=False)
         logging.info(f"finished configuring the Unifold AlphlaFold model and process numpy features")
         unifold_predict(model_runner,general_args,processed_features)
+    
+    elif use_openfold:
+        from openfold.run_pretrained_openfold import create_general_args,create_model_config,create_model_generator,preprocess_feature_dict,open_fold_predict
 
 def predict_multimers(multimers,use_unifold=False):
     """

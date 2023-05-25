@@ -13,3 +13,6 @@
 	path = unifold
 	url = git@github.com:henrywotton/Uni-Fold.git
 	branch = af2v3
+[submodule "openfold"]
+	path = openfold
+	url = git@github.com:henrywotton/openfold.git
