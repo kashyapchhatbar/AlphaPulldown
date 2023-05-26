@@ -55,6 +55,16 @@ flags.DEFINE_boolean(
 )
 flags.DEFINE_enum("unifold_model_name","multimer_af2",
                   ["multimer_af2","multimer_ft","multimer","multimer_af2_v3","multimer_af2_model45_v3"],"choose unifold model structure")
+
+flags.DEFINE_bool("use_openfold",False,"use openfold or not")
+flags.DEFINE_enum("openfold_model_name","model_1_ptm",
+                  ["model_1","model_2","model_3","model_4",
+                   "model_5","model_1_ptm","model_2_ptm",
+                   "model_3_ptm","model_4_ptm","model_5_ptm"],"choose openfold model structure")
+flags.DEFINE_str("openfold_checkpoint_path","",
+                 "path to openfold checkpoints")
+flags.DEFINE_str("jax_param_path","","path to jax parameters if available")
+
 flags.mark_flag_as_required("output_path")
 
 delattr(flags.FLAGS, "models_to_relax")
@@ -312,8 +322,18 @@ def predict_individual_jobs(multimer_object, output_path, model_runners, random_
     
     elif use_openfold:
         from openfold.run_pretrained_openfold import create_general_args,create_model_config,create_model_generator,preprocess_feature_dict,open_fold_predict
+        general_args = create_general_args(config_preset=FLAGS.openfold_model_name,
+                                           long_sequence_inference=False,
+                                           model_device="cuda:0",
+                                           openfold_checkpoint_path=FLAGS.openfold_checkpoint_path,
+                                           jax_param_path=FLAGS.jax_param_path,
+                                           output_dir=output_path,trace_model=False,
+                                           subtract_plddt=False,multimer_ri_gap=200,
+                                           save_outputs=False,skip_relaxation=True)
+        model_configs = create_model_config(general_args)
+        create_model_generator = create_model_generator(model_configs,general_args)
 
-def predict_multimers(multimers,use_unifold=False):
+def predict_multimers(multimers,use_unifold=False,use_openfold=False):
     """
     Final function to predict multimers
 
@@ -336,7 +356,7 @@ def predict_multimers(multimers,use_unifold=False):
                 FLAGS.output_path,
                 model_runners=model_runners,
                 random_seed=random_seed,
-                use_unifold=use_unifold
+                use_unifold=use_unifold,use_openfold=use_openfold
             )
         else:
             model_runners, random_seed = create_model_runners_and_random_seed(
@@ -351,7 +371,7 @@ def predict_multimers(multimers,use_unifold=False):
                 object,
                 FLAGS.output_path,
                 model_runners=model_runners,
-                random_seed=random_seed,use_unifold=use_unifold
+                random_seed=random_seed,use_unifold=use_unifold,use_openfold=use_openfold
             )
 
 
@@ -393,7 +413,7 @@ def main(argv):
         )
 
 
-    predict_multimers(multimers,use_unifold=FLAGS.use_unifold)
+    predict_multimers(multimers,use_unifold=FLAGS.use_unifold,use_openfold=FLAGS.use_openfold)
 
 
 
