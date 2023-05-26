@@ -331,7 +331,14 @@ def predict_individual_jobs(multimer_object, output_path, model_runners, random_
                                            subtract_plddt=False,multimer_ri_gap=200,
                                            save_outputs=False,skip_relaxation=True)
         model_configs = create_model_config(general_args)
-        create_model_generator = create_model_generator(model_configs,general_args)
+        preprocessed_feature_dict,feature_processor = preprocess_feature_dict(feature_dict=multimer_object.feature_dict)
+        model_generator = create_model_generator(model_configs,general_args)
+        open_fold_predict(model_generator,processed_feature_dict=preprocessed_feature_dict,
+                          args=general_args,tag=multimer_object.description,
+                          feature_dict=multimer_object.feature_dict,
+                          feature_processor=feature_processor,config=model_configs,
+                          output_name=multimer_object.description)
+
 
 def predict_multimers(multimers,use_unifold=False,use_openfold=False):
     """
