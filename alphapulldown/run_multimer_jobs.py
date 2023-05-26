@@ -61,9 +61,9 @@ flags.DEFINE_enum("openfold_model_name","model_1_ptm",
                   ["model_1","model_2","model_3","model_4",
                    "model_5","model_1_ptm","model_2_ptm",
                    "model_3_ptm","model_4_ptm","model_5_ptm"],"choose openfold model structure")
-flags.DEFINE_str("openfold_checkpoint_path","",
+flags.DEFINE_string("openfold_checkpoint_path","",
                  "path to openfold checkpoints")
-flags.DEFINE_str("jax_param_path","","path to jax parameters if available")
+flags.DEFINE_string("jax_param_path","","path to jax parameters if available")
 
 flags.mark_flag_as_required("output_path")
 
@@ -331,7 +331,11 @@ def predict_individual_jobs(multimer_object, output_path, model_runners, random_
                                            subtract_plddt=False,multimer_ri_gap=200,
                                            save_outputs=False,skip_relaxation=True)
         model_configs = create_model_config(general_args)
-        preprocessed_feature_dict,feature_processor = preprocess_feature_dict(feature_dict=multimer_object.feature_dict)
+        multimer_object.feature_dict.update({
+            "template_all_atom_mask":multimer_object.feature_dict['template_all_atom_masks']
+        })
+        preprocessed_feature_dict,feature_processor = preprocess_feature_dict(feature_dict=multimer_object.feature_dict,
+                                                                              config=model_configs,args=general_args)
         model_generator = create_model_generator(model_configs,general_args)
         open_fold_predict(model_generator,processed_feature_dict=preprocessed_feature_dict,
                           args=general_args,tag=multimer_object.description,
